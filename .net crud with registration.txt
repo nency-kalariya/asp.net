@@ -1,0 +1,241 @@
+Install-Package EntityFramework
+-------------------------------------------------------------------------------------------
+
+Homecontroller.cs
+=================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Crud.Model;
+
+namespace Crud.Controllers
+{
+    public class HomeController : Controller
+    {
+        mydbEntities1 db = new mydbEntities1();
+        public ActionResult Index()
+        {
+            List<Student> lst = db.Students.ToList();
+            return View(lst);
+        }
+
+        public ActionResult Form()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Form(Student s)
+        {
+            db.Students.Add(s);
+            db.SaveChanges();
+            return View();
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "Your application description page.";
+
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+
+
+
+        public ActionResult Destroy(int id)
+        {
+            Student s = db.Students.Find(id);
+            db.Students.Remove(s);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+
+        public ActionResult Edit(int id)
+        {
+            Student s = db.Students.Find(id);
+           
+            return View(s);
+        }
+        [HttpPost]
+        public ActionResult Edit(Student s)
+        {
+            Student s1 = db.Students.Find(s.Id);
+            s1.name = s.name;
+            s1.branch = s.branch;
+            db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+    }
+}
+------------------------------------------------------------------------------------------
+About.cshtml
+==================
+@{
+    ViewBag.Title = "About";
+}
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title.</h2>
+    <h3>@ViewBag.Message</h3>
+
+    <p>Use this area to provide additional information.</p>
+</main>
+------------------------------------------------------------------------------------------
+contact.cshtml
+===================
+@{
+    ViewBag.Title = "Contact";
+}
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title.</h2>
+    <h3>@ViewBag.Message</h3>
+
+    <address>
+        One Microsoft Way<br />
+        Redmond, WA 98052-6399<br />
+        <abbr title="Phone">P:</abbr>
+        425.555.0100
+    </address>
+
+    <address>
+        <strong>Support:</strong>   <a href="mailto:Support@example.com">Support@example.com</a><br />
+        <strong>Marketing:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
+    </address>
+</main>
+------------------------------------------------------------------------------------------
+Edit.cshtml
+============
+@model Crud.Model.Student
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm("Edit", "Home", FormMethod.Post))
+{
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        @Html.TextBoxFor(m => m.name, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Branch</label>
+        @Html.TextBoxFor(m => m.branch, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+------------------------------------------------------------------------------------------
+Form.cshtml
+============
+@model Crud.Model.Student
+@{
+    ViewBag.Title = "Form";
+}
+
+<h2 class="text-center">Registration</h2>
+
+@using (Html.BeginForm("Form", "Home", FormMethod.Post))
+{
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        @Html.TextBoxFor(m => m.name, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Branch</label>
+        @Html.TextBoxFor(m => m.branch, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+-------------------------------------------------------------------------------------------
+Index.cshtml
+==============
+@model List<Crud.Model.Student>
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<table border="1" class="table table-striped">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Branch</th>
+        <th>Delete</th>
+        <th>Edit</th>
+
+    </tr>
+
+    @foreach( var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.name</td>
+                    <td>@item.branch</td>
+                    <td>@Html.ActionLink("Delete", "Destroy", new { item.Id }, htmlAttributes: new { @class = "btn btn-danger" })</td>
+                    <td>@Html.ActionLink("Edit", "Edit", new { item.Id }, htmlAttributes: new { @class = "btn btn-primary" })</td>
+                </tr>
+            }
+</table>
+------------------------------------------------------------------------------------------
+Layout.cshtml
+==============
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+        <div class="container">
+            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+------------------------------------------------------------------------------------------
+database
+===========
+app_data->server explorer->projet name->data connection->table->database name->table banavanu->id->properties->true
+
+-----
+table->show table data
+
+------
+model->update model from database
