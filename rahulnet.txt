@@ -1,0 +1,181 @@
+index.cshtml
+--------------
+@model CRUSINASP.Models.Student
+@{
+    ViewBag.Title = "Home Page";
+}
+
+
+
+
+@using (Html.BeginForm("Index", "Home", FormMethod.Post))
+{
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        @Html.TextBoxFor(m => m.name, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Semester</label>
+        @Html.TextBoxFor(m => m.semester, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+
+<label class="text-danger">@TempData["Error"]</label>
+=============================================================================================
+about.cshtml
+--------------
+@model List<CRUSINASP.Models.Student>
+@{
+    ViewBag.Title = "About";
+}
+
+
+@using (Html.BeginForm("About", "Home", FormMethod.Get))
+{
+    <label>Search here</label>
+
+    <input type="text" name="search" placeholder="Enter name to search" />
+    <input type="submit" class="btn btn-info" value="Search" />
+}
+
+
+<table border="1" class="table table-striped">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Semester</th>
+        <th>Delete</th>
+        <th>Edit</th>
+    </tr>
+
+    @foreach (var ms in Model)
+    {
+        <tr>
+            <td>@ms.Id</td>
+            <td>@ms.name</td>
+            <td>@ms.semester</td>
+            <td>@Html.ActionLink("Delete", "Destroy", new { ms.Id }, htmlAttributes: new { @class = "btn btn-danger" })</td>
+            <td>@Html.ActionLink("Edit", "Edit", new { ms.Id }, htmlAttributes: new { @class = "btn btn-primary" })</td>
+        </tr>
+    }
+</table>
+===========================================================================================
+edit.cshtml
+-------------
+@model CRUSINASP.Models.Student
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm("Edit", "Home", FormMethod.Post))
+{
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        @Html.TextBoxFor(m => m.name, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Semester</label>
+        @Html.TextBoxFor(m => m.semester, htmlAttributes: new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+}
+===========================================================================================
+homecontroller.cs
+-------------------
+using CRUSINASP.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using CRUSINASP.Models;
+
+namespace CRUSINASP.Controllers
+{
+    public class HomeController : Controller
+    {
+        mydbEntities db = new mydbEntities();
+        public ActionResult Index()
+        {
+
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Index(Student s)
+        {
+            var existed = db.Students.FirstOrDefault(m => m.name == s.name && m.semester == s.semester);
+
+            if(existed == null)
+            {
+                db.Students.Add(s);
+                db.SaveChanges();
+                return View();
+            }
+            else
+            {
+                TempData["Error"] = "Already Registered";
+                return View();
+            }
+            
+           
+            
+        }
+
+        public ActionResult About(string search)
+        {
+            List<Student> lst = db.Students.ToList();
+
+            if(search != null)
+            {
+                var s = db.Students.Where(m => m.name == search).ToList();
+                return View(s);
+            }
+
+            return View(lst);
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+
+        public ActionResult Destroy(int id)
+        {
+            Student s = db.Students.Find(id);
+            db.Students.Remove(s);
+            db.SaveChanges();
+
+            return RedirectToAction("About");
+        }
+
+
+        public ActionResult Edit(int id)
+        {
+            Student s = db.Students.Find(id);
+
+            return View(s);
+        }
+        [HttpPost]
+        public ActionResult Edit(Student s)
+        {
+            Student s1 = db.Students.Find(s.Id);
+            s1.name = s.name;
+            s1.semester = s.semester;
+            db.SaveChanges();
+
+            return RedirectToAction("About");
+        }
+    }
+}
+==========================================================================================
+
